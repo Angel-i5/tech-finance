@@ -1,0 +1,205 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { fetchSettings, saveSettings, getSession } from '../api';
+import { BlogSettings } from '../types';
+import { ArrowLeft, Save, Settings as SettingsIcon, Link as LinkIcon, Type } from 'lucide-react';
+
+export function AdminSettings() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [settings, setSettings] = useState<BlogSettings>({
+    smartlink_url: '',
+    smartlink_keywords: '',
+    banner_header: '',
+    banner_sidebar: '',
+    banner_footer: '',
+    banner_article_bottom: '',
+    popunder_code: '',
+    social_bar_code: ''
+  });
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const session = await getSession();
+      if (!session) {
+        navigate('/admin/login');
+        return;
+      }
+      
+      try {
+        const data = await fetchSettings();
+        setSettings({
+          smartlink_url: data.smartlink_url || '',
+          smartlink_keywords: data.smartlink_keywords || '',
+          banner_header: data.banner_header || '',
+          banner_sidebar: data.banner_sidebar || '',
+          banner_footer: data.banner_footer || '',
+          banner_article_bottom: data.banner_article_bottom || '',
+          popunder_code: data.popunder_code || '',
+          social_bar_code: data.social_bar_code || ''
+        });
+      } catch (err) {
+        console.error('Error fetching settings', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await saveSettings(settings);
+      alert('Configuración guardada correctamente');
+    } catch (err) {
+      console.error('Error saving settings', err);
+      alert('Error al guardar la configuración');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-8">
+      <div className="flex items-center justify-between">
+        <Link to="/admin" className="inline-flex items-center gap-2 text-sm text-black/40 hover:text-black transition-colors">
+          <ArrowLeft size={16} /> Volver al Panel
+        </Link>
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <SettingsIcon size={24} /> Configuración General
+        </h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="bg-white border border-black/5 rounded-3xl p-8 shadow-xl shadow-black/5 space-y-6">
+          <h2 className="text-lg font-bold tracking-tight border-b border-black/5 pb-4">Adsterra Smartlink Automático</h2>
+          
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-widest text-black/40">URL del Smartlink</label>
+            <div className="relative">
+              <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-black/20" size={18} />
+              <input 
+                type="url" 
+                value={settings.smartlink_url}
+                onChange={(e) => setSettings({ ...settings, smartlink_url: e.target.value })}
+                className="w-full bg-black/5 border border-transparent rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-black/10 focus:bg-white transition-all"
+                placeholder="https://smartlink.adsterra.com/..."
+              />
+            </div>
+            <p className="text-[10px] text-black/40 italic">Pega aquí tu Smartlink de Adsterra.</p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-widest text-black/40">Palabras Clave (separadas por coma)</label>
+            <div className="relative">
+              <Type className="absolute left-3 top-4 text-black/20" size={18} />
+              <textarea 
+                value={settings.smartlink_keywords}
+                onChange={(e) => setSettings({ ...settings, smartlink_keywords: e.target.value })}
+                className="w-full bg-black/5 border border-transparent rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-black/10 focus:bg-white transition-all h-32 resize-none"
+                placeholder="ia, criptomonedas, inversión, tecnología..."
+              />
+            </div>
+            <p className="text-[10px] text-black/40 italic">Cada vez que estas palabras aparezcan en un artículo, se convertirán automáticamente en un enlace a tu Smartlink.</p>
+          </div>
+        </div>
+
+        <div className="bg-white border border-black/5 rounded-3xl p-8 shadow-xl shadow-black/5 space-y-6">
+          <h2 className="text-lg font-bold tracking-tight border-b border-black/5 pb-4">Banners de Publicidad (Adsterra)</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-widest text-black/40">Banner Superior (Header)</label>
+              <textarea 
+                value={settings.banner_header}
+                onChange={(e) => setSettings({ ...settings, banner_header: e.target.value })}
+                className="w-full bg-black/5 border border-transparent rounded-xl px-4 py-3 text-[10px] font-mono focus:outline-none focus:border-black/10 focus:bg-white transition-all h-24 resize-none"
+                placeholder="Pega aquí el código del banner..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-widest text-black/40">Banner Lateral (Sidebar)</label>
+              <textarea 
+                value={settings.banner_sidebar}
+                onChange={(e) => setSettings({ ...settings, banner_sidebar: e.target.value })}
+                className="w-full bg-black/5 border border-transparent rounded-xl px-4 py-3 text-[10px] font-mono focus:outline-none focus:border-black/10 focus:bg-white transition-all h-24 resize-none"
+                placeholder="Pega aquí el código del banner..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-widest text-black/40">Banner Final de Artículo</label>
+              <textarea 
+                value={settings.banner_article_bottom}
+                onChange={(e) => setSettings({ ...settings, banner_article_bottom: e.target.value })}
+                className="w-full bg-black/5 border border-transparent rounded-xl px-4 py-3 text-[10px] font-mono focus:outline-none focus:border-black/10 focus:bg-white transition-all h-24 resize-none"
+                placeholder="Pega aquí el código del banner..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-widest text-black/40">Banner Pie de Página (Footer)</label>
+              <textarea 
+                value={settings.banner_footer}
+                onChange={(e) => setSettings({ ...settings, banner_footer: e.target.value })}
+                className="w-full bg-black/5 border border-transparent rounded-xl px-4 py-3 text-[10px] font-mono focus:outline-none focus:border-black/10 focus:bg-white transition-all h-24 resize-none"
+                placeholder="Pega aquí el código del banner..."
+              />
+            </div>
+          </div>
+          <p className="text-[10px] text-black/40 italic">Pega los códigos de script o HTML proporcionados por Adsterra para cada zona.</p>
+        </div>
+
+        <div className="bg-white border border-black/5 rounded-3xl p-8 shadow-xl shadow-black/5 space-y-6">
+          <h2 className="text-lg font-bold tracking-tight border-b border-black/5 pb-4">Anuncios de Alto Rendimiento (Popunder & Social Bar)</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-widest text-black/40">Código Popunder</label>
+              <textarea 
+                value={settings.popunder_code}
+                onChange={(e) => setSettings({ ...settings, popunder_code: e.target.value })}
+                className="w-full bg-black/5 border border-transparent rounded-xl px-4 py-3 text-[10px] font-mono focus:outline-none focus:border-black/10 focus:bg-white transition-all h-32 resize-none"
+                placeholder="Pega aquí el script del Popunder..."
+              />
+              <p className="text-[10px] text-black/40 italic">Se abre en una nueva ventana/pestaña al hacer clic.</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-widest text-black/40">Código Social Bar</label>
+              <textarea 
+                value={settings.social_bar_code}
+                onChange={(e) => setSettings({ ...settings, social_bar_code: e.target.value })}
+                className="w-full bg-black/5 border border-transparent rounded-xl px-4 py-3 text-[10px] font-mono focus:outline-none focus:border-black/10 focus:bg-white transition-all h-32 resize-none"
+                placeholder="Pega aquí el script de Social Bar..."
+              />
+              <p className="text-[10px] text-black/40 italic">Notificaciones interactivas que flotan en la pantalla.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-4">
+          <button 
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-2 bg-black text-white px-10 py-3 rounded-xl font-bold text-sm hover:bg-black/90 transition-all disabled:opacity-50"
+          >
+            <Save size={18} /> {saving ? 'Guardando...' : 'Guardar Configuración'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

@@ -1,0 +1,25 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
+
+.prose h1 { @apply text-3xl font-bold mb-6 mt-10 tracking-tight; }
+.prose h2 { @apply text-2xl font-bold mb-4 mt-8 tracking-tight; }
+.prose h3 { @apply text-xl font-bold mb-3 mt-6 tracking-tight; }
+.prose p { @apply mb-6 leading-relaxed text-black/80; }
+.prose ul { @apply list-disc list-inside mb-6 space-y-2; }
+.prose ol { @apply list-decimal list-inside mb-6 space-y-2; }
+.prose blockquote { @apply border-l-4 border-black pl-6 italic my-8 text-xl font-serif text-black/60; }
+.prose strong { @apply font-bold text-black; }
+.prose code { @apply bg-black/5 px-1.5 py-0.5 rounded font-mono text-sm; }
+
