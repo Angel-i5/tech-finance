@@ -12,22 +12,31 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
-const PORT = 3000;
+// CORRECCIÓN: Render asigna un puerto dinámico mediante la variable de entorno PORT
+const PORT = process.env.PORT || 3000; 
 
 // Vite middleware for development
 if (process.env.NODE_ENV !== "production") {
   const vite = await createViteServer({
-    server: { middlewareMode: true },
+    server: { 
+      middlewareMode: true,
+      // HMR configurado según vite.config.ts
+      hmr: process.env.DISABLE_HMR !== 'true' 
+    },
     appType: "spa",
   });
   app.use(vite.middlewares);
 } else {
-  app.use(express.static(path.join(__dirname, "dist")));
+  // En producción, servimos los archivos estáticos de la carpeta 'dist'
+  const distPath = path.join(__dirname, "dist");
+  app.use(express.static(distPath));
+  
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "dist", "index.html"));
+    res.sendFile(path.join(distPath, "index.html"));
   });
 }
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// CORRECCIÓN: Escuchar en '0.0.0.0' es correcto para contenedores/Render
+app.listen(Number(PORT), "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT} (mode: ${process.env.NODE_ENV || 'development'})`);
 });
