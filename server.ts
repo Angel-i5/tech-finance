@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
-// CORRECCIÓN: Render asigna un puerto dinámico mediante la variable de entorno PORT
+// puerto dinámico mediante la variable de entorno PORT
 const PORT = process.env.PORT || 3000; 
 
 // Vite middleware for development

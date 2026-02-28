@@ -108,18 +108,23 @@ export async function fetchSettings(): Promise<BlogSettings> {
 }
 
 export async function saveSettings(settings: BlogSettings): Promise<void> {
-  const { data: existing } = await supabase.from('settings').select('id').single();
+  // Intentamos obtener el ID de la fila existente (usualmente la 1)
+  const { data: existing } = await supabase.from('settings').select('id').maybeSingle();
   
+  // Usamos settings directamente ya que no tiene propiedad 'id'
+  const updateData = settings;
+
   if (existing) {
     const { error } = await supabase
       .from('settings')
-      .update(settings)
+      .update(updateData)
       .eq('id', existing.id);
     if (error) throw error;
   } else {
+    // Si no existe, insertamos con ID 1 por defecto
     const { error } = await supabase
       .from('settings')
-      .insert([settings]);
+      .insert([{ ...updateData, id: 1 }]);
     if (error) throw error;
   }
 }
